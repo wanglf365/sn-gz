@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--suppress SqlDialectInspection -->
+<mapper namespace="com.sn.gz.pmp.dsc.mapper.org.RoleMapper">
+
+    <!-- 获取角色所有权限详细信息 -->
+    <select id="listAuthoritiesByRoleIds"
+            resultType="com.sn.gz.pmp.dsc.entity.org.Authority">
+        SELECT
+        authority.id,
+        authority.auth_id authId,
+        authority.name,
+        authority.category,
+        authority.value,
+        authority.pre_id preId,
+        member_role.id roleId,
+        authority.permission_type permissionType
+        FROM
+        t_org_member_role_relationship member_role
+        INNER JOIN
+        t_org_role_authority_relationship role_authority
+        ON
+        member_role.id = role_authority.role_id
+        INNER JOIN
+        t_org_authority authority
+        ON
+        role_authority.authority_id = authority.id
+        WHERE
+        <if test="roleList != null and roleList.size() > 0">
+            member_role.id IN
+            <foreach collection="roleList" item="item" open="(" close=")" separator=",">
+                #{item.id}
+            </foreach>
+        </if>
+        <if test="roleList == null or roleList.size() == 0">
+            1 = 0
+        </if>
+        GROUP BY
+        authority.id
+    </select>
+
+    <!--角色配置-获取角色成员-->
+    <select id="listRoleMember" resultType="com.sn.gz.pmp.dsc.model.org.RoleMemberOutModel"
+            parameterType="java.lang.Long">
+        SELECT
+        member.id memberId,
+        member.member_name memberName,
+        member.phone phone,
+        member.email email,
+        GROUP_CONCAT(department.name order by department.id ASC SEPARATOR ',') departmentName
+        FROM
+        t_org_role role
+        INNER JOIN
+        t_org_member_role_realtionship member_role
+        ON
+        role.id = member_role.role_id
+        LEFT JOIN
+        t_org_member member
+        ON
+        member_role.customer_id = member.id
+        LEFT JOIN
+        t_org_department_member_relationship department_member
+        ON
+        member.id = department_member.customer_id
+        LEFT JOIN
+        t_org_department department
+        ON
+        department_member.department_id = department.id
+        WHERE
+        role.id = #{roleId}
+        GROUP BY
+        member.id
+    </select>
+
+    <select id="listRole" resultType="com.sn.gz.pmp.dsc.model.org.RoleOutModel">
+        select role.id roleId,role.name roleName,role_team.id roleTeamId,role_team.name roleTeamName
+        from t_org_role role
+        inner join t_org_role_team role_team on role.role_team_id=role_team.id
+        where role.group_id=#{groupId} and role.enable='1'
+        <if test="keyword != null and keyword != ''">
+            AND
+            role.name LIKE concat('%', #{keyword}, '%')
+        </if>
+        order by role_team.id
+    </select>
+</mapper>

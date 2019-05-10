@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//common.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--suppress SqlDialectInspection -->
+<mapper namespace="com.sn.gz.pmp.dsc.mapper.auth.UnionUserMapper">
+    <!-- 批量保存用户 -->
+    <insert id="batchInsert">
+        INSERT INTO t_auth_union_user(
+        id,
+        password,
+        email,
+        phone,
+        create_datetime,
+        modified_datetime,
+        enable
+        ) VALUES
+        <foreach collection="unionUserList" item="item" separator=",">
+            (
+            #{item.id},
+            #{item.password},
+            #{item.email},
+            #{item.phone},
+            now(),
+            now(),
+            #{item.enable}
+            )
+        </foreach>
+    </insert>
+</mapper>
+
+

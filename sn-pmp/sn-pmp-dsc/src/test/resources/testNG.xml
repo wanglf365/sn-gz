@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="PMP Suite">
+  <test name="sn-pmp-field">
+    <classes>
+      <class name="com.sn.gz.pmp.dsc.FieldTest">
+        <methods>
+          <include name="fieldToJson"/>
+        </methods>
+      </class> <!-- com.sn.gz.pmp.dsc.FieldTest -->
+    </classes>
+  </test> <!-- sn-starter -->
+</suite> <!-- Default Suite -->

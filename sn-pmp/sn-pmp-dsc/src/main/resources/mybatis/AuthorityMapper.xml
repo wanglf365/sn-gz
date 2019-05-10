@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--suppress SqlDialectInspection -->
+<mapper namespace="com.sn.gz.pmp.dsc.mapper.org.AuthorityMapper">
+
+    <!-- 批量保存集团权限表 -->
+    <insert id="batchInsert">
+        INSERT INTO t_org_authority(
+        id,
+        name,
+        value,
+        category,
+        permission_type,
+        auth_id,
+        parent,
+        group_id,
+        create_datetime,
+        modified_datetime) VALUES
+        <foreach collection="authorityList" item="authority" separator=",">
+            (
+            #{authority.id},
+            #{authority.name},
+            #{authority.value},
+            #{authority.category},
+            #{authority.permissionType},
+            #{authority.authId},
+            #{authority.parent},
+            #{authority.groupId},
+            now(),
+            now()
+            )
+        </foreach>
+    </insert>
+
+    <!-- 获取用户所有权限（如果有管理员权限则获取公司所有权限） -->
+    <select id="listMemberAuthorities" resultType="com.sn.gz.pmp.dsc.entity.org.Authority">
+        SELECT
+           auth.id id, auth.value value,auth.name name,auth.group_id groupId,auth.create_datetime createDatetime,auth.modified_datetime modifiedDatetime
+           ,auth.parent parent,auth.permission_type permissionType,auth.auth_id authId,auth.category category
+        FROM
+            t_org_role role
+        INNER JOIN
+            t_org_member_role_relationship member_role
+            ON
+            member_role.role_id = role.id
+        INNER JOIN
+            t_org_role_authority_relationship role_authority
+            ON
+            role_authority.role_id = role.id
+        INNER JOIN
+            t_org_authority auth
+            ON
+            role_authority.authority_id = auth.id
+        WHERE
+            member_role.member_id = #{memberId}
+            AND
+            role.enable = '1'
+        UNION
+        SELECT
+            auth.value
+        FROM
+            t_org_authority auth
+        WHERE
+            auth.group_id = #{groupId}
+            AND
+            <![CDATA[
+            0 < (SELECT
+            ]]>
+                    COUNT(*)
+                 FROM
+                    t_org_member_role_relationship member_role
+                        INNER JOIN
+                    t_org_member member
+                    ON
+                    member.id = member_role.member_id
+                        INNER JOIN
+                    t_org_role role
+                    ON
+                    member_role.role_id = role.id
+                WHERE
+                    member_role.member_id = #{memberId}
+                    AND role.admin = '1')
+                AND LOCATE(auth.permission_type,#{permissionType})
+    </select>
+
+    <select id="listNotInAuthorityIdsByRoleIdAndAuthIds" parameterType="java.lang.Long" resultType="java.lang.Long">
+        SELECT
+        auth.id
+        FROM
+        t_org_role_authority_relationship role_auth
+        INNER JOIN
+        t_org_authority auth ON role_auth.authority_id = auth.id
+        WHERE
+        role_auth.role_id = #{roleId} and auth.id not IN
+        <foreach collection="notInIdList" item="notInId" index="index"
+                 open="(" close=")" separator=",">
+            #{notInId}
+        </foreach>
+    </select>
+
+    <!-- 获取当前用户的所有权限的类型判断加载菜单 -->
+    <select id="listMemberPermissionType" resultType="java.lang.String">
+        SELECT
+        auth.permission_type
+        FROM
+        t_org_role role
+        INNER JOIN t_org_member_role_relationship member_role
+        ON member_role.role_id = role.id
+        INNER JOIN t_org_role_authority_relationship role_authority
+        ON role_authority.role_id = role.id
+        INNER JOIN t_org_authority auth
+        ON role_authority.authority_id = auth.id
+        WHERE member_role.member_id = #{memberId}
+        AND role.enable = '1'
+        UNION
+        SELECT
+        auth.permission_type
+        FROM
+        t_org_authority auth
+        WHERE
+        auth.group_id = #{groupId}
+        AND
+        <![CDATA[
+            0 < (SELECT
+            ]]>
+        COUNT(*)
+        FROM
+        t_org_member member
+        INNER JOIN t_org_member_role_relationship member_role
+        ON member.id = member_role.member_id
+        INNER JOIN t_org_role role
+        ON member_role.role_id = role.id
+        WHERE member_role.member_id = #{memberId}
+        AND role.admin = '1')
+        GROUP BY
+        auth.permission_type
+    </select>
+
+</mapper>

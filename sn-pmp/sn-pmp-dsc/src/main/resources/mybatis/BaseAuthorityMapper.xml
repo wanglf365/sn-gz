@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--suppress SqlDialectInspection -->
+<mapper namespace="com.sn.gz.pmp.dsc.mapper.org.BaseAuthorityMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.sn.gz.pmp.dsc.entity.org.BaseAuthority">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="value" property="value"/>
+        <result column="category" property="category"/>
+        <result column="permission_type" property="permissionType"/>
+        <result column="pre_id" property="preId"/>
+    </resultMap>
+
+    <!-- 保存或更新用户权限表 -->
+    <insert id="saveOrUpdate">
+        INSERT INTO t_org_base_authority(
+			id,
+			name,
+			value,
+			category,
+			permission_type,
+			parent) VALUES
+            (
+			#{baseAuthority.id},
+			#{baseAuthority.name},
+			#{baseAuthority.value},
+			#{baseAuthority.category},
+			#{baseAuthority.permissionType},
+			#{baseAuthority.parent}
+		)ON duplicate KEY UPDATE
+			name = VALUES(name),
+			value = VALUES(value),
+			category = VALUES(category),
+			permission_type = VALUES(permission_type),
+			parent = VALUES(parent)
+    </insert>
+
+    <!-- 批量保存用户权限表 -->
+    <insert id="batchInsert">
+        INSERT INTO t_org_base_authority(
+        id,
+        name,
+        value,
+        category,
+        permission_type,
+        parent) VALUES
+        <foreach collection="baseAuthorityList" item="baseAuthority" separator=",">
+            (
+            #{baseAuthority.id},
+            #{baseAuthority.name},
+            #{baseAuthority.value},
+            #{baseAuthority.category},
+            #{baseAuthority.permissionType},
+            #{baseAuthority.parent}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 批量保存或更新用户权限表 -->
+    <insert id="batchSaveOrUpdate">
+        INSERT INTO t_org_base_authority(
+        id,
+        name,
+        value,
+        category,
+        permission_type,
+        parent) VALUES
+        <foreach collection="baseAuthorityList" item="baseAuthority" separator=",">
+            (
+            #{baseAuthority.id},
+            #{baseAuthority.name},
+            #{baseAuthority.value},
+            #{baseAuthority.category},
+            #{baseAuthority.permissionType},
+            #{baseAuthority.parent}
+            )
+        </foreach>
+        ON duplicate KEY UPDATE
+        name = VALUES(name),
+        value = VALUES(value),
+        category = VALUES(category),
+        permission_type = VALUES(permission_type),
+        parent = VALUES(parent)
+    </insert>
+</mapper>

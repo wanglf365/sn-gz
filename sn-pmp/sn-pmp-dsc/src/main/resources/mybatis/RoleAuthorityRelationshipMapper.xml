@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--suppress SqlDialectInspection -->
+<mapper namespace="com.sn.gz.pmp.dsc.mapper.org.RoleAuthorityRelationshipMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.sn.gz.pmp.dsc.entity.org.RoleAuthorityRelationship">
+        <id column="id" property="id"/>
+        <result column="role_id" property="roleId"/>
+        <result column="authority_id" property="authorityId"/>
+        <result column="group_id" property="groupId"/>
+        <result column="create_datetime" property="createDatetime"/>
+        <result column="modified_datetime" property="modifiedDatetime"/>
+    </resultMap>
+
+    <!-- 批量保存 -->
+    <insert id="batchInsert">
+        INSERT INTO t_org_role_authority_relationship(
+        id,
+        role_id,
+        authority_id,
+        group_id,
+        create_datetime,
+        modified_datetime) VALUES
+        <foreach collection="roleAuthorityList" item="roleAuthority" separator=",">
+            (
+            #{roleAuthority.id},
+            #{roleAuthority.roleId},
+            #{roleAuthority.authorityId},
+            #{roleAuthority.groupId},
+            now(),
+            now()
+            )
+        </foreach>
+    </insert>
+
+    </mapper>

@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--suppress SqlDialectInspection -->
+<mapper namespace="com.sn.gz.pmp.dsc.mapper.org.MemberMapper">
+
+    <!--分页查询集团已启用成员列表（通过姓名、手机号检索）-->
+    <select id="listMembers" resultType="com.sn.gz.pmp.dsc.entity.org.Member">
+        SELECT
+        member.id,
+        member.phone,
+        member.enable,
+        member.name,
+        member.email,
+        member.dingtalk_pk dingtalkPK,
+        member.dingtalk_unionId dingtalkUnionId,
+        FROM
+        t_org_member member
+        WHERE
+        member.group_id = #{groupId}
+        AND
+        member.enable = '1'
+        <if test="keyword != null and keyword != ''">
+            AND
+            concat(member.name, member.phone) LIKE concat('%', #{keyword}, '%')
+        </if>
+        ORDER BY member.id
+    </select>
+
+    <!-- 批量保存用户 -->
+    <insert id="batchInsert">
+        INSERT INTO t_org_member(
+        id,
+        name,
+        phone,
+        email,
+        profile_photo,
+        dingtalk_pk,
+        dingtalk_unionId,
+        create_datetime,
+        modified_datetime,
+        group_id,
+        union_id,
+        enable
+        ) VALUES
+        <foreach collection="memberList" item="item" separator=",">
+            (
+            #{item.id},
+            #{item.name},
+            #{item.phone},
+            #{item.email},
+            #{item.profilePhoto},
+            #{item.dingtalkPK},
+            #{item.dingtalkUnionId},
+            #{item.createDatetime},
+            #{item.modifiedDatetime},
+            #{item.groupId},
+            #{item.unionId},
+            #{item.enable}
+            )
+        </foreach>
+    </insert>
+
+    <insert id="batchUpdate">
+        INSERT INTO
+        t_org_member
+        (
+        id,
+        name,
+        phone,
+        email,
+        profile_photo,
+        dingtalk_pk,
+        dingtalk_unionId,
+        create_datetime,
+        modified_datetime,
+        group_id,
+        enable
+        )
+        VALUES
+        <foreach collection="memberList" separator="," index="index" item="item">
+            (
+            #{item.id},
+            #{item.name},
+            #{item.phone},
+            #{item.email},
+            #{item.profilePhoto},
+            #{item.dingtalkPK},
+            #{item.dingtalkUnionId},
+            #{item.createDatetime},
+            now(),
+            #{item.groupId},
+            #{item.enable}
+            )
+        </foreach>
+        ON duplicate KEY UPDATE
+        name = VALUES(name),
+        enable = VALUES(enable),
+        phone = VALUES(phone),
+        email = VALUES(email),
+        profile_photo = VALUES(profile_photo),
+        dingtalk_unionId = VALUES(dingtalk_unionId),
+        dingtalk_pk = VALUES(dingtalk_pk),
+        modified_datetime = now()
+    </insert>
+
+    <select id="listByRoleId" resultType="com.sn.gz.pmp.dsc.model.org.MemberOutModel">
+        select
+        member.id memberId,
+        member.name memberName,
+        member.phone phone,
+        department.name departmentName
+        from
+        t_org_role role
+        inner join
+        t_org_member_role_relationship member_role
+        on role.id=member_role.role_id
+        inner join
+        t_org_member member
+        on member_role.member_id=member.id
+        inner join
+        t_org_department_member_relationship department_member
+        on member.id=department_member.member_id
+        inner join t_org_department department
+        on department_member.department_id=department.id
+        where
+        role.group_id=#{groupId}
+        and role.enable='1'
+        and role.id=#{roleId}
+        and member.enable='1'
+        and department_member.main_department='1'
+        order by
+        member.id
+    </select>
+
+    <select id="listDepartmentMember" resultType="com.sn.gz.pmp.dsc.model.org.DepartmentMemberOutModel">
+           select
+        member.id memberId,
+        member.name memberName,
+        member.phone phone,
+        department.name departmentName,
+        department_member.main_department,
+        department.id departmentId
+        from
+		t_org_member member
+	    inner join
+		t_org_department_member_relationship department_member
+        on member.id=department_member.member_id
+        inner join t_org_department department
+		on department_member.department_id=department.id
+        where
+        member.group_id=#{groupId}
+        and member.enable='1'
+        order by member.id,department.id
+    </select>
+
+    <select id="listMemberByExcludeRole" resultType="com.sn.gz.pmp.dsc.model.org.DepartmentMemberOutModel">
+        select out_member.id memberId,out_member.name memberName,out_member.phone phone,
+        out_department.id departmentId,out_department.name departmentName,out_department_member.main_department mainDepartment
+        from t_org_member out_member
+        inner join t_org_department_member_relationship out_department_member
+        on out_department_member.member_id=out_member.id
+        inner join t_org_department out_department
+        on out_department_member.department_id=out_department.id
+        where out_member.group_id=#{groupId} and out_member.enable='1' and out_member.id
+        not in(
+        select
+        member.id id
+        from
+		t_org_member member
+	    inner join
+		t_org_member_role_relationship role_member
+        on member.id=role_member.member_id
+        inner join t_org_role role
+		on role_member.role_id=role.id
+        where
+        member.group_id=#{groupId}
+        and role.id=#{roleId}
+        and role.enable ='1' )
+        <if test="keyword != null and keyword != ''">
+            AND
+            concat(out_member.name, out_member.phone) LIKE concat('%', #{keyword}, '%')
+        </if>
+        order by
+        out_member.id,out_department.id
+    </select>
+
+
+</mapper>

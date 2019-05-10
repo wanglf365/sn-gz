@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--suppress SqlDialectInspection -->
+<mapper namespace="com.sn.gz.pmp.dsc.mapper.org.DepartmentMemberRelationshipMapper">
+    <!-- 批量保存部门与人员的关联关系 -->
+    <insert id="batchInsert">
+        INSERT INTO t_org_department_member_relationship(
+        id,
+        department_id,
+        member_id,
+        leader,
+        main_department,
+        group_id,
+        create_datetime,
+        modified_datetime
+        ) VALUES
+        <foreach collection="departmentMemberList" item="item" separator=",">
+            (
+            #{item.id},
+            #{item.departmentId},
+            #{item.memberId},
+            #{item.leader},
+            #{item.mainDepartment},
+            #{item.groupId},
+            #{item.createDatetime},
+            #{item.modifiedDatetime}
+            )
+        </foreach>
+    </insert>
+
+    <insert id="batchUpdate">
+        INSERT INTO
+        t_org_department_member_relationship
+        (
+        id,
+        department_id,
+        member_id,
+        leader,
+        main_department,
+        group_id,
+        create_datetime,
+        modified_datetime
+        )
+        VALUES
+        <foreach collection="list" separator="," index="index" item="item">
+            (
+            #{item.id},
+            #{item.departmentId},
+            #{item.memberId},
+            #{item.leader},
+            #{item.mainDepartment},
+            #{item.groupId},
+            #{item.createDatetime},
+            now()
+            )
+        </foreach>
+        ON duplicate KEY UPDATE
+        department_id = VALUES(department_id),
+        member_id = VALUES(member_id),
+        leader = VALUES(leader),
+        main_department = VALUES(main_department),
+        modified_datetime = now()
+    </insert>
+</mapper>

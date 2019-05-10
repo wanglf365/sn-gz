@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--suppress SqlDialectInspection -->
+<mapper namespace="com.sn.gz.pmp.dsc.mapper.org.MemberRoleRelationshipMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.sn.gz.pmp.dsc.entity.org.MemberRoleRelationship">
+        <id column="id" property="id"/>
+        <result column="member_id" property="memberId"/>
+        <result column="role_id" property="roleId"/>
+        <result column="group_id" property="groupId"/>
+        <result column="create_datetime" property="createDatetime"/>
+        <result column="modified_datetime" property="modifiedDatetime"/>
+    </resultMap>
+
+    <!-- 批量保存客户角色关系表 -->
+    <insert id="batchInsert">
+        INSERT INTO t_org_member_role_relationship(
+        id,
+        member_id,
+        role_id,
+        group_id,
+        project_id,
+        role_type,
+        create_datetime,
+        modified_datetime) VALUES
+        <foreach collection="memberRoleList" item="item" separator=",">
+            (
+            #{item.id},
+            #{item.memberId},
+            #{item.roleId},
+            #{item.groupId},
+            #{item.projectId},
+            #{item.roleType},
+            now(),
+            now()
+            )
+        </foreach>
+    </insert>
+
+    <insert id="batchDelete">
+        delete from t_org_member_role_relationship where group_id=#{groupId} and member_id in
+        <foreach collection="memberList" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </insert>
+
+    <insert id="batchDeleteByRoleId">
+        delete from t_org_member_role_relationship where group_id=#{groupId} and role_id=#{roleId}and member_id in
+        <foreach collection="memberList" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </insert>
+</mapper>

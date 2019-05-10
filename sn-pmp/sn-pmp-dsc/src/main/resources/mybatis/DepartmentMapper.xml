@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--suppress SqlDialectInspection -->
+<mapper namespace="com.sn.gz.pmp.dsc.mapper.org.DepartmentMapper">
+    <!--批量编辑部门-->
+    <insert id="batchUpdate">
+        INSERT INTO
+        t_org_department
+        (
+        id,
+        name,
+        description,
+        path,
+        sort,
+        level,
+        dingtalk_pk,
+        parent_id,
+        modified_datetime
+        )
+        VALUES
+        <foreach collection="list" separator="," index="index" item="item">
+            (
+            #{item.id},
+            #{item.name},
+            #{item.description},
+            #{item.path},
+            #{item.sort},
+            #{item.level},
+            #{item.dingtalkPK},
+            #{item.parentId},
+            now()
+            )
+        </foreach>
+        ON duplicate KEY UPDATE
+        name = VALUES(name),
+        description = VALUES(description),
+        path = VALUES(path),
+        sort = VALUES(sort),
+        level = VALUES(level),
+        parent_id = VALUES(parent_id),
+        modified_datetime = now()
+    </insert>
+    <insert id="batchInsert">
+        INSERT INTO
+        t_org_department
+        (
+        id,
+        name,
+        description,
+        path,
+        sort,
+        level,
+        dingtalk_pk,
+        parent_id,
+        group_id,
+        create_datetime,
+        modified_datetime
+        )
+        VALUES
+        <foreach collection="list" separator="," index="index" item="item">
+            (
+            #{item.id},
+            #{item.name},
+            #{item.description},
+            #{item.path},
+            #{item.sort},
+            #{item.level},
+            #{item.dingtalkPK},
+            #{item.parentId},
+            #{item.groupId},
+            #{item.createDatetime},
+            #{item.modifiedDatetime}
+            )
+        </foreach>
+    </insert>
+
+    <select id="listByName" resultType="com.sn.gz.pmp.dsc.entity.org.Department">
+        select department.id id,
+        department.name name,
+        department.description description,
+        department.path path,
+        department.sort sort,
+        department.level level,
+        department.dingtalk_pk dingtalkPK,
+        department.parent_id parentId,
+        department.group_id groupId,
+        department.create_datetime createDatetime,
+        department.modified_datetime modifiedDatetime
+        from
+        t_org_department department
+        where
+        department.group_id=#{groupId}
+        <if test="keyword != null and keyword != ''">
+            AND
+            department.name LIKE concat('%', #{keyword}, '%')
+        </if>
+        order by
+        department.id
+    </select>
+</mapper>
